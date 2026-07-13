@@ -1,0 +1,1931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planillas Generales — Lomy</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f5f0e8; --surface: #ffffff; --surface2: #faf7f2; --border: #e2d9cc;
+    --ink: #1a1612; --muted: #8a7d6e; --accent: #c4401c; --amber: #d4820a;
+    --green: #2d6a4f; --red: #c4401c; --yellow: #f4a416;
+    --radius: 8px; --shadow: 0 1px 3px rgba(26,22,18,0.08), 0 4px 16px rgba(26,22,18,0.04);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--ink); font-family: 'Inter', sans-serif; font-size: 14px; min-height: 100vh; }
+
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .header {
+    background: #fff; border-bottom: 3px solid var(--accent); padding: 14px 20px;
+    display: flex; align-items: center; gap: 14px; box-shadow: 0 2px 12px rgba(196,64,28,0.10);
+    position: sticky; top: 0; z-index: 50;
+  }
+  .header-logo { height: 34px; width: auto; object-fit: contain; flex-shrink: 0; }
+  .header-left h1 { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: -0.2px; }
+  .header-left p { font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+  .local-bar {
+    background: var(--surface2); border-bottom: 1px solid var(--border); padding: 10px 20px;
+    display: flex; align-items: center; gap: 10px; position: sticky; top: 62px; z-index: 40;
+  }
+  .local-bar label { font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
+  .local-bar select {
+    flex: 1; max-width: 260px; background: #fff; border: 1px solid var(--border); border-radius: 6px;
+    padding: 7px 10px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--ink); outline: none;
+  }
+  .general-btn {
+    background: var(--ink); color: #fff; border: none; border-radius: 6px; padding: 7px 12px;
+    font-size: 11px; font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; white-space: nowrap;
+  }
+  .general-btn:hover { background: var(--accent); }
+
+  .content { max-width: 720px; margin: 0 auto; padding: 20px 16px 100px; }
+  .content-ancho { max-width: 1000px; }
+
+  .general-sub { font-size: 11px; color: var(--muted); margin-bottom: 14px; }
+  .tabla-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); }
+  .tabla-general { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 12px; }
+  .tabla-general th { background: var(--surface2); font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--muted); padding: 10px 8px; text-align: center; border-bottom: 2px solid var(--border); position: sticky; top: 0; }
+  .tabla-general th:first-child { text-align: left; }
+  .tabla-general td { padding: 9px 8px; text-align: center; border-bottom: 1px solid var(--border); }
+  .tabla-general td.nombre-local { text-align: left; font-weight: 700; font-size: 12px; }
+  .celda-estado { display: inline-block; min-width: 54px; padding: 5px 8px; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer; }
+  .celda-estado.sin-datos { background: var(--surface2); color: var(--muted); }
+  .celda-estado.bien { background: #e3f5ea; color: var(--green); }
+  .celda-estado.regular { background: #fdf0dc; color: var(--amber); }
+  .celda-estado.mal { background: #fbdfdd; color: var(--red); }
+  .celda-estado:hover { filter: brightness(0.95); }
+
+  .back-btn {
+    background: var(--surface2); border: 1px solid var(--border); color: var(--muted);
+    font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 6px; cursor: pointer; margin-bottom: 14px;
+  }
+  .back-btn:hover { color: var(--ink); }
+
+  /* DASHBOARD */
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 480px) { .dash-grid { grid-template-columns: 1fr; } }
+  .dash-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; box-shadow: var(--shadow); cursor: pointer; transition: transform 0.15s; position: relative;
+  }
+  .dash-card:hover { transform: translateY(-2px); }
+  .dash-card .flag {
+    position: absolute; top: 10px; right: 10px; background: var(--red); color: #fff;
+    font-size: 9px; font-weight: 700; padding: 3px 8px; border-radius: 10px; text-transform: uppercase;
+  }
+  .dash-icon { font-size: 26px; margin-bottom: 8px; }
+  .dash-nombre { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 700; margin-bottom: 10px; line-height: 1.3; }
+  .dash-pct { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; color: var(--accent); }
+  .dash-pct.sin-datos { color: var(--muted); font-size: 14px; }
+  .dash-bar-outer { background: var(--border); border-radius: 3px; height: 5px; margin-top: 8px; overflow: hidden; }
+  .dash-bar-inner { background: var(--green); height: 100%; transition: width 0.3s; }
+  .dash-bar-inner.mal { background: var(--red); }
+
+  /* SEMANAL */
+  .semanal-header { margin-bottom: 14px; }
+  .semanal-header h2 { font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 800; text-transform: uppercase; }
+  .week-nav { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin: 10px 0 14px; box-shadow: var(--shadow); }
+  .week-nav button { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; width: 30px; height: 30px; font-size: 14px; cursor: pointer; color: var(--ink); }
+  .week-nav .rango { font-size: 12px; font-weight: 600; }
+
+  .semanal-progress { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .semanal-progress .pct { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--accent); }
+  .semanal-progress .bar-outer { flex: 1; min-width: 100px; background: var(--border); border-radius: 3px; height: 6px; overflow: hidden; }
+  .semanal-progress .bar-inner { background: var(--green); height: 100%; transition: width 0.3s; }
+  .semanal-progress .incump { font-size: 11px; color: var(--red); font-weight: 700; }
+
+  .grupo-titulo { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent); margin: 18px 0 8px; }
+  .dias-header { display: flex; align-items: center; gap: 10px; padding: 0 10px 4px; }
+  .dias-header .spacer { flex: 1; }
+  .dias-header .dia-letra { width: 26px; text-align: center; font-size: 9px; font-weight: 700; color: var(--muted); }
+
+  .tarea-row { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 8px 10px; margin-bottom: 5px; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow); }
+  .tarea-num { font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; color: var(--muted); min-width: 18px; text-align: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 4px; padding: 1px 3px; flex-shrink: 0; }
+  .tarea-texto { flex: 1; font-size: 11.5px; line-height: 1.35; }
+  .dias-toggle { display: flex; gap: 3px; flex-shrink: 0; }
+  .dia-btn { width: 26px; height: 26px; border-radius: 5px; border: 1px solid var(--border); background: var(--surface2); font-size: 10px; font-weight: 700; cursor: pointer; color: var(--muted); }
+  .dia-btn.hecho { background: var(--green); color: #fff; border-color: var(--green); }
+  .dia-btn.vencido { background: #fdf3f2; color: var(--red); border-color: var(--red); }
+  .dia-btn.futuro { opacity: 0.4; cursor: not-allowed; }
+  .dia-btn.hoy { box-shadow: 0 0 0 2px var(--amber); }
+
+  /* -------- MENSUAL (grilla día 1-31) -------- */
+  .mes-nav { display: flex; align-items: center; justify-content: space-between; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; margin: 10px 0 6px; box-shadow: var(--shadow); }
+  .mes-nav button { background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; width: 30px; height: 30px; font-size: 14px; cursor: pointer; color: var(--ink); }
+  .mes-nav .rango { font-size: 12px; font-weight: 600; }
+  .mensual-nota { font-size: 11px; color: var(--muted); margin-bottom: 12px; }
+  .mes-scroll { overflow-x: auto; padding-bottom: 4px; margin-bottom: 4px; }
+  .dias-header-mes { display: flex; align-items: center; gap: 3px; padding: 0 0 4px; }
+  .dias-header-mes .spacer-mes { width: 128px; flex-shrink: 0; }
+  .dias-header-mes .dia-num { width: 20px; flex-shrink: 0; text-align: center; font-size: 8px; font-weight: 700; color: var(--muted); }
+  .tarea-row-mes { display: flex; align-items: center; gap: 3px; background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 6px 0; margin-bottom: 4px; box-shadow: var(--shadow); }
+  .tarea-texto-mes { width: 128px; flex-shrink: 0; font-size: 11px; padding: 0 8px; line-height: 1.25; }
+  .dias-toggle-mes { display: flex; gap: 3px; flex-shrink: 0; }
+  .dia-btn-mes { width: 20px; height: 24px; border-radius: 4px; border: 1px solid var(--border); background: var(--surface2); font-size: 9px; font-weight: 700; cursor: pointer; color: var(--muted); flex-shrink: 0; }
+  .dia-btn-mes.hecho { background: var(--green); color: #fff; border-color: var(--green); }
+  .dia-btn-mes.vencido { background: #fdf3f2; color: var(--red); border-color: var(--red); }
+  .dia-btn-mes.futuro { opacity: 0.4; cursor: not-allowed; }
+  .dia-btn-mes.hoy { box-shadow: 0 0 0 2px var(--amber); }
+
+  /* -------- PRODUCCIÓN (tablas) -------- */
+  .tabla-prod { border-collapse: collapse; width: 100%; font-size: 12px; min-width: 420px; }
+  .tabla-prod th { background: var(--surface2); font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; color: var(--muted); padding: 8px 6px; border-bottom: 2px solid var(--border); text-align: center; }
+  .tabla-prod th:first-child { text-align: left; }
+  .tabla-prod td { padding: 6px; border-bottom: 1px solid var(--border); text-align: center; }
+  .tabla-prod td:first-child { text-align: left; font-weight: 600; }
+  .tabla-prod input { width: 68px; text-align: center; background: var(--surface2); border: 1px solid var(--border); border-radius: 5px; padding: 5px; font-size: 12px; font-family: 'Inter', sans-serif; color: var(--ink); outline: none; }
+  .tabla-prod input:focus { border-color: var(--accent); background: #fff; }
+  .tabla-prod .total-cell { font-weight: 700; color: var(--accent); }
+  .tabla-prod input.input-obs { width: 130px; text-align: left; }
+  .envio-celda { display: flex; flex-direction: column; gap: 4px; }
+  .envio-celda input { width: 72px; }
+  .envio-celda input.envio-temp { color: var(--muted); }
+  .envio-celda input.envio-temp.mal { border-color: var(--red); color: var(--red); background: #fdf3f2; font-weight: 700; }
+
+  /* REGISTROS (temperatura / recepcion) */
+  .form-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 18px; box-shadow: var(--shadow); }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .campo { margin-bottom: 10px; }
+  .campo.full { grid-column: 1 / -1; }
+  .campo label { font-family: 'Syne', sans-serif; font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--muted); display: block; margin-bottom: 4px; }
+  .campo input, .campo select { width: 100%; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 13px; font-family: 'Inter', sans-serif; color: var(--ink); outline: none; }
+  .campo input:focus, .campo select:focus { border-color: var(--accent); background: #fff; }
+
+  .segmentado { display: flex; gap: 6px; }
+  .segmentado button { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface2); font-size: 12px; font-weight: 600; cursor: pointer; color: var(--muted); }
+  .segmentado button.activo { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+  .resultado-preview { margin-top: 10px; padding: 10px 12px; border-radius: 6px; font-size: 12px; font-weight: 700; text-align: center; display: none; }
+  .resultado-preview.ok { display: block; background: #f0faf4; color: var(--green); border: 1px solid #b7dfc7; }
+  .resultado-preview.mal { display: block; background: #fdf3f2; color: var(--red); border: 1px solid #f5c6c3; }
+
+  .btn { display: block; width: 100%; padding: 12px; border: none; border-radius: 8px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+  .btn:hover { background: var(--accent); }
+  .btn-secundario { display: block; width: 100%; padding: 10px; border: 1px dashed var(--border); border-radius: 8px; background: transparent; color: var(--muted); font-size: 12px; font-weight: 700; font-family: 'Syne', sans-serif; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+  .btn-secundario:hover { border-color: var(--accent); color: var(--accent); }
+
+  .link-editar { float: right; text-transform: none; font-weight: 600; letter-spacing: 0; color: var(--accent); font-size: 10px; cursor: pointer; text-decoration: none; }
+  .link-editar:hover { text-decoration: underline; }
+
+  .equipo-row { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; }
+  .equipo-row input[type="text"] { flex: 1; min-width: 0; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 7px 9px; font-size: 12px; font-family: 'Inter', sans-serif; color: var(--ink); outline: none; }
+  .equipo-row .segmentado.mini { flex-shrink: 0; width: 140px; gap: 4px; }
+  .equipo-row .segmentado.mini button { padding: 7px 4px; font-size: 10px; }
+  .equipo-row .borrar-equipo { flex-shrink: 0; width: 26px; height: 26px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface2); color: var(--red); font-size: 12px; cursor: pointer; }
+  .equipo-vacio { font-size: 11px; color: var(--muted); text-align: center; padding: 10px 0; }
+  .login-error { color: var(--red); font-size: 11px; margin: -6px 0 12px; min-height: 14px; }
+  .semanal-header h2 .link-editar { float: none; margin-left: 8px; vertical-align: middle; text-transform: none; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .historial-titulo { font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .entrada-row { background: var(--surface); border: 1px solid var(--border); border-radius: 7px; padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; box-shadow: var(--shadow); }
+  .entrada-row.ok { border-left: 3px solid var(--green); }
+  .entrada-row.mal { border-left: 3px solid var(--red); }
+  .entrada-info { flex: 1; font-size: 12px; line-height: 1.4; }
+  .entrada-info .principal { font-weight: 600; }
+  .entrada-info .secundario { color: var(--muted); font-size: 10.5px; }
+  .entrada-badge { font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 10px; flex-shrink: 0; }
+  .entrada-badge.ok { background: var(--green); color: #fff; }
+  .entrada-badge.mal { background: var(--red); color: #fff; }
+
+  .vacio { text-align: center; color: var(--muted); font-size: 12px; padding: 20px; }
+
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--ink); color: #fff; padding: 10px 18px; border-radius: 6px; font-size: 13px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transform: translateY(60px); opacity: 0; transition: all 0.3s; z-index: 999; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.show { display: flex; }
+  .modal { background: #fff; border-radius: 12px; padding: 22px; max-width: 380px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+  .modal h3 { font-family: 'Syne', sans-serif; font-size: 14px; margin-bottom: 6px; }
+  .modal p { font-size: 12px; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <img class="header-logo" src="data:image/png;base64,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" alt="Grupo DPF">
+  <div class="header-left">
+    <h1>Planillas Generales</h1>
+    <p>Control operativo de locales · Grupo DPF</p>
+  </div>
+</div>
+
+<div class="local-bar">
+  <label>Local</label>
+  <select id="local-select" onchange="cambiarLocal()">
+    <option value="">Elegí un local</option>
+  </select>
+  <button class="general-btn" onclick="abrirVistaGeneral()">🌐 Todas las sucursales</button>
+</div>
+
+<!-- ============ DASHBOARD (un local) ============ -->
+<div id="dashboard-screen" class="screen active">
+  <div class="content">
+    <div class="dash-grid" id="dash-grid"></div>
+  </div>
+</div>
+
+<!-- ============ VISTA GENERAL (todas las sucursales) ============ -->
+<div id="general-screen" class="screen">
+  <div class="content">
+    <button class="back-btn" onclick="mostrarPantalla('dashboard-screen')">← Volver</button>
+    <div class="semanal-header"><h2>🌐 Vista General — Todas las sucursales <a href="#" class="link-editar" onclick="event.preventDefault(); cerrarSesionOps();">cerrar sesión</a></h2></div>
+    <p class="general-sub">Semana actual (Apertura/Cierre) · Mes actual (Temperatura/Recepción) · tocá una celda para entrar directo</p>
+    <div class="tabla-wrap">
+      <table class="tabla-general" id="tabla-general"></table>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SEMANAL (apertura / cierre) ============ -->
+<div id="semanal-screen" class="screen">
+  <div class="content">
+    <button class="back-btn" onclick="mostrarPantalla('dashboard-screen')">← Volver</button>
+    <div class="semanal-header">
+      <h2 id="semanal-titulo">—</h2>
+    </div>
+    <div class="week-nav">
+      <button onclick="cambiarSemana(-1)">‹</button>
+      <span class="rango" id="semanal-rango">—</span>
+      <button onclick="cambiarSemana(1)">›</button>
+    </div>
+    <div class="semanal-progress">
+      <div class="pct" id="semanal-pct">0%</div>
+      <div class="bar-outer"><div class="bar-inner" id="semanal-bar" style="width:0%"></div></div>
+      <div class="incump" id="semanal-incump"></div>
+    </div>
+    <div id="semanal-grupos"></div>
+  </div>
+</div>
+
+<!-- ============ TEMPERATURA ============ -->
+<div id="temperatura-screen" class="screen">
+  <div class="content">
+    <button class="back-btn" onclick="mostrarPantalla('dashboard-screen')">← Volver</button>
+    <div class="semanal-header"><h2>🌡️ Control de Temperatura</h2></div>
+
+    <div class="form-card">
+      <div class="campo">
+        <label>Turno</label>
+        <div class="segmentado" id="temp-turno-sel">
+          <button class="activo" onclick="setTurno('Mañana', this)">Mañana</button>
+          <button onclick="setTurno('Noche', this)">Noche</button>
+        </div>
+      </div>
+      <div class="campo">
+        <label>Equipo <a href="#" class="link-editar" onclick="event.preventDefault(); abrirModalEquipos();">editar equipos</a></label>
+        <select id="temp-equipo-sel" onchange="onCambioEquipoSel()"></select>
+      </div>
+      <div class="form-grid">
+        <div class="campo"><label>Hora</label><input type="time" id="temp-hora"></div>
+        <div class="campo"><label>Temperatura (°C)</label><input type="number" step="0.1" id="temp-valor" placeholder="Ej: 3.5"></div>
+      </div>
+      <div class="resultado-preview" id="temp-preview"></div>
+      <button class="btn" style="margin-top:10px;" onclick="agregarLecturaTemperatura()">Guardar lectura</button>
+    </div>
+
+    <div class="historial-titulo">Este mes</div>
+    <div id="temp-historial"></div>
+  </div>
+</div>
+
+<!-- ============ RECEPCION DE MATERIA PRIMA ============ -->
+<div id="recepcion-screen" class="screen">
+  <div class="content">
+    <button class="back-btn" onclick="mostrarPantalla('dashboard-screen')">← Volver</button>
+    <div class="semanal-header"><h2>📦 Recepción de Materia Prima</h2></div>
+
+    <div class="form-card">
+      <div class="form-grid">
+        <div class="campo full"><label>Producto</label><input type="text" id="rec-producto" placeholder="Ej: Pecho brisket"></div>
+        <div class="campo"><label>Proveedor</label><input type="text" id="rec-proveedor"></div>
+        <div class="campo"><label>Cantidad</label><input type="text" id="rec-cantidad" placeholder="Ej: 20 kg"></div>
+        <div class="campo"><label>Lote</label><input type="text" id="rec-lote"></div>
+        <div class="campo"><label>Vencimiento</label><input type="date" id="rec-vencimiento"></div>
+      </div>
+      <div class="campo">
+        <label>Tipo</label>
+        <div class="segmentado" id="rec-tipo-sel">
+          <button class="activo" onclick="setTipoRecepcion('refrigerado', this)">Refrigerado</button>
+          <button onclick="setTipoRecepcion('congelado', this)">Congelado</button>
+          <button onclick="setTipoRecepcion('ambiente', this)">Ambiente</button>
+        </div>
+      </div>
+      <div class="campo" id="rec-temp-campo"><label>Temperatura (°C)</label><input type="number" step="0.1" id="rec-temp" placeholder="Ej: 3.0"></div>
+      <div class="resultado-preview" id="rec-preview"></div>
+      <div class="campo" style="margin-top:10px;"><label>Responsable</label><input type="text" id="rec-responsable"></div>
+      <button class="btn" style="margin-top:10px;" onclick="agregarRecepcion()">Guardar recepción</button>
+    </div>
+
+    <div class="historial-titulo">Este mes</div>
+    <div id="rec-historial"></div>
+  </div>
+</div>
+
+<!-- ============ MENSUAL (riego / limpieza baños / limpieza general) ============ -->
+<div id="mensual-screen" class="screen">
+  <div class="content content-ancho">
+    <button class="back-btn" onclick="mostrarPantalla('dashboard-screen')">← Volver</button>
+    <div class="semanal-header">
+      <h2 id="mensual-titulo">—</h2>
+      <div class="mensual-nota" id="mensual-nota"></div>
+    </div>
+    <div class="mes-nav">
+      <button onclick="cambiarMes(-1)">‹</button>
+      <span class="rango" id="mensual-rango">—</span>
+      <button onclick="cambiarMes(1)">›</button>
+    </div>
+    <div class="semanal-progress">
+      <div class="pct" id="mensual-pct">0%</div>
+      <div class="bar-outer"><div class="bar-inner" id="mensual-bar" style="width:0%"></div></div>
+      <div class="incump" id="mensual-incump"></div>
+    </div>
+    <div id="mensual-grupos"></div>
+  </div>
+</div>
+
+<!-- ============ REGISTRO GENÉRICO (llave, temp. cocción, pasteurización, salsa, aceite, chopp) ============ -->
+<div id="registro-screen" class="screen">
+  <div class="content">
+    <button class="back-btn" onclick="mostrarPantalla('dashboard-screen')">← Volver</button>
+    <div class="semanal-header"><h2 id="registro-titulo">—</h2></div>
+
+    <div class="form-card">
+      <div class="form-grid" id="registro-campos"></div>
+      <div class="resultado-preview" id="registro-preview"></div>
+      <button class="btn" style="margin-top:10px;" onclick="agregarRegistroGenerico()">Guardar registro</button>
+    </div>
+
+    <div class="historial-titulo">Este mes</div>
+    <div id="registro-historial"></div>
+  </div>
+</div>
+
+<!-- ============ PRODUCCIÓN DIARIA ============ -->
+<div id="produccion-screen" class="screen">
+  <div class="content content-ancho">
+    <button class="back-btn" onclick="mostrarPantalla('dashboard-screen')">← Volver</button>
+    <div class="semanal-header"><h2>🥩 Producción Diaria</h2></div>
+
+    <div class="form-card">
+      <div class="campo"><label>Fecha</label><input type="date" id="prod-fecha"></div>
+    </div>
+
+    <div class="form-card">
+      <div class="historial-titulo">1 — Corte de Carnes</div>
+      <div class="tabla-wrap"><table class="tabla-prod" id="tabla-corte"></table></div>
+    </div>
+
+    <div class="form-card">
+      <div class="historial-titulo">2 — Verduras</div>
+      <div class="tabla-wrap"><table class="tabla-prod" id="tabla-verduras"></table></div>
+    </div>
+
+    <div class="form-card">
+      <div class="historial-titulo">3 — Marinada</div>
+      <div class="tabla-wrap"><table class="tabla-prod" id="tabla-marinada"></table></div>
+    </div>
+
+    <div class="form-card">
+      <div class="historial-titulo">4 — Producción Final de Carnes</div>
+      <div class="tabla-wrap"><table class="tabla-prod" id="tabla-final"></table></div>
+    </div>
+
+    <div class="form-card">
+      <div class="form-grid">
+        <div class="campo full"><label>Colaboradores</label><input type="text" id="prod-colaboradores" placeholder="Ej: 3"></div>
+        <div class="campo full"><label>Horas de trabajo total (todos los colaboradores)</label><input type="text" id="prod-horas" placeholder="Ej: 24"></div>
+      </div>
+      <button class="btn" style="margin-top:10px;" onclick="guardarProduccion()">Guardar producción</button>
+    </div>
+
+    <div class="historial-titulo">Este mes</div>
+    <div id="prod-historial"></div>
+  </div>
+</div>
+
+<!-- ============ ENVÍOS SEMANALES (Centro de Producción) ============ -->
+<div id="envios-screen" class="screen">
+  <div class="content content-ancho">
+    <button class="back-btn" onclick="mostrarPantalla('dashboard-screen')">← Volver</button>
+    <div class="semanal-header"><h2>🚚 Registro de Envíos Semanales</h2></div>
+    <div class="week-nav">
+      <button onclick="cambiarSemanaEnvios(-1)">‹</button>
+      <span class="rango" id="envios-rango">—</span>
+      <button onclick="cambiarSemanaEnvios(1)">›</button>
+    </div>
+    <div class="form-card">
+      <div class="tabla-wrap"><table class="tabla-prod" id="tabla-envios"></table></div>
+      <div class="campo full" style="margin-top:12px;"><label>Responsable</label><input type="text" id="envios-responsable" placeholder="Nombre"></div>
+      <button class="btn" style="margin-top:10px;" onclick="guardarEnvios()">Guardar semana</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="modal-login-ops">
+  <div class="modal">
+    <h3>🔒 Acceso Operaciones</h3>
+    <p>Vista General es para el equipo de Operaciones. Ingresá el usuario y contraseña del área.</p>
+    <div class="campo">
+      <label>Usuario</label>
+      <input type="text" id="login-usuario" autocomplete="username">
+    </div>
+    <div class="campo">
+      <label>Contraseña</label>
+      <input type="password" id="login-clave" autocomplete="current-password" onkeydown="if(event.key==='Enter') intentarLoginOps();">
+    </div>
+    <div class="login-error" id="login-error"></div>
+    <button class="btn" onclick="intentarLoginOps()">Ingresar</button>
+    <button class="btn-secundario" style="margin-top:8px;" onclick="cerrarModalLoginOps()">Cancelar</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-equipos">
+  <div class="modal">
+    <h3>Equipos de frío</h3>
+    <p>Cargá los equipos de frío de este local (cámaras, heladeras, freezers), con su nombre real. Se guarda en este dispositivo.</p>
+    <div id="lista-equipos-cfg"></div>
+    <button class="btn-secundario" onclick="agregarEquipoConfig()">+ Agregar equipo</button>
+    <button class="btn" style="margin-top:10px;" onclick="guardarConfigEquipos()">Guardar y continuar</button>
+  </div>
+</div>
+
+<script>
+/* Pegá acá la URL de tu Apps Script publicado (Code_Planillas_Generales.gs), termina en /exec. */
+const API_URL = "https://script.google.com/macros/s/AKfycbxqAwLjdQxj6EoWBBD3LdFbUX1L5ZdRhEOglExPUHI7tn1-kzdsvtq465VaMlpDCX4D/exec";
+const LOGO_DATA_URI = "data:image/png;base64,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";
+
+const LOCALES = ["Brasilia","Mall","Villamorra","Sol","Luque","Foodhouse","1811","Lambare","Producción Central"];
+
+const DIAS = [
+  { key: 'lun', letra: 'L' }, { key: 'mar', letra: 'M' }, { key: 'mie', letra: 'M' },
+  { key: 'jue', letra: 'J' }, { key: 'vie', letra: 'V' }, { key: 'sab', letra: 'S' }, { key: 'dom', letra: 'D' },
+];
+
+const PLANILLAS_SEMANAL = {
+  apertura: {
+    nombre: 'Checklist Apertura', icon: '🌅',
+    grupos: [
+      { titulo: 'Check List ATC Apertura', tareas: [
+        'Ingresar al local con el uniforme puesto, marcar entrada',
+        'Encender corporativo POS Bancard, Dinelco, Pedidos Ya y Monchis',
+        'Hacer el depósito de dinero',
+        'Abrir la caja',
+        'Limpiar fritadora',
+        'Hacer el inventario',
+        'Al abrir el local, prender las pantallas del menú',
+        'Limpiar mostrador con alcohol y ordenar',
+        'Recargar las heladeras',
+        'Previa para turno: salsas en vasito, servilleta forma de estrella y otros',
+        'Cargar el inventario antes de las 11:00 hs',
+        'Realizar las tareas de limpieza diaria',
+        'Realizar insumos: verduras, salsas y otros',
+        'Recargar las heladeras',
+        'Al hacer el cierre de caja, imprimir dos arqueos: el de apertura y el de cierre',
+        'El corte de caja debe ir firmado y archivado en el bibliorato correspondiente',
+        'Completar la planilla ATC',
+        'Si es necesario, cambiar la bolsa del basurero de ATC',
+        'Las comandas del turno guardar en el lugar designado',
+      ]},
+      { titulo: 'Check List Cocina Apertura', tareas: [
+        'Ingresar al local con el uniforme puesto, marcar entrada',
+        'Alzar las llaves de la plancha y de las tostadoras, encender',
+        'Completar las planillas de temperaturas',
+        'Hacer el inventario de cocina',
+        'Hacer una lista de insumos que va a faltar para el día',
+        'Armar / abastecer mesa de condimentación',
+        'Hacer la limpieza designada para el día',
+        'Elaborar mayo choclo, mayo ajo y verduras',
+        'Cambiar las bolsas de basura',
+        'Lavar los trapos sucios',
+        'Barrer y repasar antes de retirarse',
+        'Verificar stock de pan, carne y kempas — pasar informe al turno que entra',
+      ]},
+    ],
+  },
+  cierre: {
+    nombre: 'Checklist Cierre', icon: '🌙',
+    grupos: [
+      { titulo: 'Tareas ATC Pre Turno Noche', tareas: [
+        'Abrir la caja del turno',
+        'Verificar que las heladeras de bebidas estén cargadas',
+        'Verificar que los vasitos de mayo ya estén cargados para toda la tarde/noche',
+        'Barrer, repasar y limpiar mostrador, ordenar',
+        'Colocar servilletas en el servilletero',
+        'Ver qué falta por hacer de la limpieza designada para el día',
+      ]},
+      { titulo: 'Tareas ATC Pre Cierre', tareas: [
+        'Guardar en el lugar designado los rollos fiscales utilizados en el día',
+        'Cambiar la bolsa del basurero',
+        'Lavar la rejilla de acero inoxidable de la chopera',
+        'Conteo de pan, carne y kempas',
+      ]},
+      { titulo: 'Tareas ATC Cierre', tareas: [
+        'Ordenar y limpiar el mostrador',
+        'Las comandas del turno guardar en el lugar designado',
+        'Hacer el cierre de caja',
+        'El corte de caja debe ir firmado y archivado en el bibliorato correspondiente',
+        'Completar la planilla ATC, con el monto de inicio del siguiente turno',
+        'Guardar en el lugar designado la llave de la caja',
+        'Apagar las pantallas de menú',
+        'Apagar las luces de las heladeras de bebidas',
+        'Barrer y repasar antes de retirarse',
+        'Apagar las luces del ATC',
+      ]},
+      { titulo: 'Tareas Cocina Pre Turno Noche', tareas: [
+        'Ver qué faltó por hacer en el turno anterior',
+        'Verificar que no falte ningún insumo',
+        'Recargar las mesadas con los insumos faltantes',
+        'Recargar los potes de tres picos',
+        'Ver qué falta por hacer de la limpieza designada para el día',
+      ]},
+      { titulo: 'Tareas Cocina Pre Cierre', tareas: [
+        'Guardar los insumos en los tuppers correspondientes',
+        'Lavar los recipientes de acero inoxidable',
+        'Lavar los trapos sucios',
+        'Realizar el conteo de pan/carne/kempas',
+        'Ordenar el estante de utensilios de la cocina',
+      ]},
+      { titulo: 'Tareas Cocina Cierre', tareas: [
+        'Lavar la plancha',
+        'Lavar los utensilios sucios (cubiertos)',
+        'Limpiar las mesadas de la cocina',
+        'Lavar los tupper de los quesos',
+        'Los tupper colocar ordenados en los refrigeradores correspondientes',
+        'Limpiar las tostadoras',
+        'Cambiar la bolsa de los basureros',
+        'Completar las planillas de temperaturas',
+        'Bajar las llaves de la plancha, tostadoras, fritadora y aires',
+        'Limpiar las bachas al utilizar todo',
+        'Limpiar las paredes en zonas donde salpicó grasa o algún condimento',
+        'Ordenar el freezer de las carnes al guardar',
+      ]},
+    ],
+  },
+};
+
+const PLANILLAS_MENSUAL = {
+  riego: {
+    nombre: 'Control de Riego', icon: '🌱',
+    nota: 'Las plantas deben regarse lunes, jueves y sábado (ambos sectores).',
+    grupos: [
+      { titulo: 'Riego de Plantas', tareas: ['Plantas Exterior', 'Plantas Interior'] },
+    ],
+  },
+  limpiezaBano: {
+    nombre: 'Limpieza de Baños', icon: '🚻',
+    nota: 'Los baños deben lavarse diariamente.',
+    grupos: [
+      { titulo: 'Limpieza de Baños', tareas: ['Baño Clientes', 'Baño Personal'] },
+    ],
+  },
+  limpiezaGeneral: {
+    nombre: 'Limpieza General', icon: '🧹',
+    grupos: [
+      { titulo: 'Superficies', tareas: [
+        'Piso', 'Paredes', 'Mesadas', 'Estantes', 'Bacha', 'Basureros',
+        'Contenedores de plástico', 'Techo', 'Limpieza de Patio', 'Limpieza de Baño', 'Limpieza de Blindex',
+      ]},
+      { titulo: 'Equipos', tareas: [
+        'Freezer 1', 'Freezer 2', 'Extractor', 'Fritadora', 'Plancha', 'Televisor', 'Computadora', 'Puertas/Ventanas',
+      ]},
+    ],
+  },
+};
+
+const PLANILLAS_REGISTRO = {
+  llave: {
+    nombre: 'Entrega de Llave', icon: '🔑',
+    campos: [
+      { key: 'descripcion', label: 'Descripción', tipo: 'text', full: true, placeholder: 'Ej: Llave principal' },
+      { key: 'cantidad', label: 'Cantidad', tipo: 'text', placeholder: 'Ej: 1' },
+      { key: 'entrega', label: 'Entrega (nombre)', tipo: 'text' },
+      { key: 'recibe', label: 'Recibe (nombre)', tipo: 'text' },
+    ],
+  },
+  pasteurizacion: {
+    nombre: 'Pasteurización de Huevos', icon: '🥚',
+    campos: [
+      { key: 'hora', label: 'Hora', tipo: 'time' },
+      { key: 'producto', label: 'Producto', tipo: 'text' },
+      { key: 'cantidad', label: 'Cantidad', tipo: 'text' },
+      { key: 'responsable', label: 'Responsable', tipo: 'text' },
+    ],
+  },
+  produccionSalsa: {
+    nombre: 'Producción de Salsa', icon: '🍅',
+    campos: [
+      { key: 'salsa', label: 'Salsa', tipo: 'text', full: true },
+      { key: 'cantidad', label: 'Cantidad', tipo: 'text' },
+      { key: 'responsable', label: 'Responsable', tipo: 'text' },
+    ],
+  },
+  cambioAceite: {
+    nombre: 'Cambio de Aceite', icon: '🛢️',
+    campos: [
+      { key: 'hora', label: 'Hora', tipo: 'time' },
+      { key: 'cantidad', label: 'Cantidad', tipo: 'text' },
+      { key: 'responsable', label: 'Responsable', tipo: 'text' },
+    ],
+  },
+  cambioChopp: {
+    nombre: 'Cambio de Chopp', icon: '🍺',
+    campos: [
+      { key: 'horaApertura', label: 'Hora de apertura', tipo: 'time' },
+      { key: 'fechaVenta', label: 'Fecha de venta', tipo: 'date' },
+      { key: 'lote', label: 'Lote / N° barril', tipo: 'text' },
+      { key: 'vasos', label: 'Cantidad de vasos', tipo: 'text' },
+    ],
+  },
+};
+
+let state = {
+  local: '',
+  pantalla: 'dashboard-screen',
+  semanalId: null,
+  semanaOffset: 0,
+  estadoSemanal: {}, // clave "g{grupoIdx}_t{tareaIdx}" -> { lun:bool, mar:bool, ... }
+  mensualId: null,
+  mesOffset: 0,
+  estadoMensual: {}, // clave "g{grupoIdx}_t{tareaIdx}" -> { d1:bool, d2:bool, ... }
+  registroId: null,
+  tempTurno: 'Mañana',
+  equiposLocal: [], // [{ nombre: 'Cámara fría', tipo: 'heladera' }, ...] — configurable por local
+  equipoSelIdx: 0,
+  equiposCfgTmp: [], // copia de trabajo mientras el modal está abierto
+  recTipo: 'refrigerado',
+  enviosOffset: 0,
+  estadoEnvios: {}, // clave índice de producto -> { envio1, envio2, envio3, observaciones }; __responsable aparte
+  opsToken: null, // token de sesión de Operaciones para ver Vista General
+};
+
+/* ---------------- INIT ---------------- */
+function init() {
+  state.opsToken = sessionStorage.getItem('planillas_ops_token') || null;
+  const sel = document.getElementById('local-select');
+  LOCALES.forEach(l => {
+    const opt = document.createElement('option');
+    opt.value = l; opt.textContent = l;
+    sel.appendChild(opt);
+  });
+  const guardado = localStorage.getItem('planillas_local');
+  if (guardado) {
+    sel.value = guardado;
+    state.local = guardado;
+    cargarDashboard();
+  } else {
+    renderDashboardVacio();
+  }
+}
+
+function cambiarLocal() {
+  state.local = document.getElementById('local-select').value;
+  localStorage.setItem('planillas_local', state.local);
+  if (state.local) cargarDashboard();
+}
+
+function mostrarPantalla(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  state.pantalla = id;
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+function requiereLocal() {
+  if (!state.local) { showToast('Elegí un local primero'); return true; }
+  return false;
+}
+
+/* ---------------- DASHBOARD ---------------- */
+const DASH_CARDS = [
+  { id: 'apertura', nombre: 'Checklist Apertura', icon: '🌅', tipo: 'semanal' },
+  { id: 'cierre', nombre: 'Checklist Cierre', icon: '🌙', tipo: 'semanal' },
+  { id: 'temperatura', nombre: 'Control de Temperatura', icon: '🌡️', tipo: 'entrada' },
+  { id: 'recepcion', nombre: 'Recepción de Materia Prima', icon: '📦', tipo: 'entrada' },
+  { id: 'riego', nombre: 'Control de Riego', icon: '🌱', tipo: 'mensual' },
+  { id: 'limpiezaBano', nombre: 'Limpieza de Baños', icon: '🚻', tipo: 'mensual' },
+  { id: 'limpiezaGeneral', nombre: 'Limpieza General', icon: '🧹', tipo: 'mensual' },
+  { id: 'llave', nombre: 'Entrega de Llave', icon: '🔑', tipo: 'entrada' },
+  { id: 'pasteurizacion', nombre: 'Pasteurización de Huevos', icon: '🥚', tipo: 'entrada' },
+  { id: 'produccionSalsa', nombre: 'Producción de Salsa', icon: '🍅', tipo: 'entrada' },
+  { id: 'cambioAceite', nombre: 'Cambio de Aceite', icon: '🛢️', tipo: 'entrada' },
+  { id: 'cambioChopp', nombre: 'Cambio de Chopp', icon: '🍺', tipo: 'entrada' },
+  { id: 'produccion', nombre: 'Producción Diaria', icon: '🥩', tipo: 'produccion', soloLocal: 'Producción Central' },
+  { id: 'salida', nombre: 'Envíos Semanales', icon: '🚚', tipo: 'envios', soloLocal: 'Producción Central' },
+];
+
+// Producción Central es una planta, no un local de atención — solo usa estas planillas.
+const LOCALES_RESTRINGIDOS = {
+  'Producción Central': ['recepcion', 'produccion', 'salida'],
+};
+
+function cardsParaLocal(local) {
+  if (LOCALES_RESTRINGIDOS[local]) {
+    const permitidos = LOCALES_RESTRINGIDOS[local];
+    return DASH_CARDS.filter(c => permitidos.includes(c.id));
+  }
+  return DASH_CARDS.filter(c => !c.soloLocal || c.soloLocal === local);
+}
+
+function renderDashboardVacio() {
+  const grid = document.getElementById('dash-grid');
+  grid.innerHTML = DASH_CARDS.map(c => `
+    <div class="dash-card" onclick="abrirDesdeCard('${c.id}')">
+      <div class="dash-icon">${c.icon}</div>
+      <div class="dash-nombre">${c.nombre}</div>
+      <div class="dash-pct sin-datos">Elegí un local</div>
+    </div>
+  `).join('');
+}
+
+async function cargarDashboard() {
+  if (!state.local) { renderDashboardVacio(); return; }
+  const grid = document.getElementById('dash-grid');
+  const cards = cardsParaLocal(state.local);
+  grid.innerHTML = cards.map(c => `
+    <div class="dash-card" onclick="abrirDesdeCard('${c.id}')">
+      <div class="dash-icon">${c.icon}</div>
+      <div class="dash-nombre">${c.nombre}</div>
+      <div class="dash-pct sin-datos">Cargando…</div>
+    </div>
+  `).join('');
+
+  if (!API_URL) {
+    grid.innerHTML = cards.map(c => `
+      <div class="dash-card" onclick="abrirDesdeCard('${c.id}')">
+        <div class="dash-icon">${c.icon}</div>
+        <div class="dash-nombre">${c.nombre}</div>
+        <div class="dash-pct sin-datos">Backend no configurado</div>
+      </div>
+    `).join('');
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_URL}?action=dashboard&local=${encodeURIComponent(state.local)}`);
+    const res = await r.json();
+    const d = res.dashboard || {};
+    grid.innerHTML = cards.map(c => {
+      const info = d[c.id] || { porcentaje: 0, incumplimientos: 0, sinDatos: true };
+      const pctHTML = info.sinDatos
+        ? `<div class="dash-pct sin-datos">Sin datos aún</div>`
+        : `<div class="dash-pct">${info.porcentaje}%</div><div class="dash-bar-outer"><div class="dash-bar-inner ${info.porcentaje < 70 ? 'mal' : ''}" style="width:${info.porcentaje}%"></div></div>`;
+      const flagHTML = info.incumplimientos > 0 ? `<div class="flag">${info.incumplimientos} incump.</div>` : '';
+      return `
+        <div class="dash-card" onclick="abrirDesdeCard('${c.id}')">
+          ${flagHTML}
+          <div class="dash-icon">${c.icon}</div>
+          <div class="dash-nombre">${c.nombre}</div>
+          ${pctHTML}
+        </div>`;
+    }).join('');
+  } catch (err) {
+    showToast('No se pudo cargar el dashboard: ' + err.message);
+  }
+}
+
+function abrirDesdeCard(id) {
+  if (requiereLocal()) return;
+  const card = DASH_CARDS.find(c => c.id === id);
+  if (!cardsParaLocal(state.local).some(c => c.id === id)) {
+    showToast(card ? card.nombre + ' no está disponible para ' + state.local : 'No disponible para este local');
+    return;
+  }
+  if (id === 'apertura' || id === 'cierre') abrirSemanal(id);
+  else if (id === 'temperatura') abrirTemperatura();
+  else if (id === 'recepcion') abrirRecepcion();
+  else if (id === 'produccion') abrirProduccion();
+  else if (id === 'salida') abrirEnvios();
+  else if (PLANILLAS_MENSUAL[id]) abrirMensual(id);
+  else if (PLANILLAS_REGISTRO[id]) abrirRegistroGenerico(id);
+}
+
+/* ---------------- VISTA GENERAL (todas las sucursales) ---------------- */
+function abrirVistaGeneral() {
+  if (!state.opsToken) { abrirLoginOps(); return; }
+  cargarVistaGeneral();
+}
+
+function abrirLoginOps() {
+  document.getElementById('login-usuario').value = '';
+  document.getElementById('login-clave').value = '';
+  document.getElementById('login-error').textContent = '';
+  document.getElementById('modal-login-ops').classList.add('show');
+}
+
+function cerrarModalLoginOps() {
+  document.getElementById('modal-login-ops').classList.remove('show');
+}
+
+async function intentarLoginOps() {
+  const usuario = document.getElementById('login-usuario').value.trim();
+  const clave = document.getElementById('login-clave').value;
+  const errorEl = document.getElementById('login-error');
+  errorEl.textContent = '';
+  if (!usuario || !clave) { errorEl.textContent = 'Completá usuario y contraseña'; return; }
+  if (!API_URL) { errorEl.textContent = 'Backend no configurado'; return; }
+  try {
+    const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'loginOps', usuario, clave }) });
+    const res = await r.json();
+    if (res.ok && res.token) {
+      state.opsToken = res.token;
+      sessionStorage.setItem('planillas_ops_token', res.token);
+      cerrarModalLoginOps();
+      cargarVistaGeneral();
+    } else {
+      errorEl.textContent = 'Usuario o contraseña incorrectos';
+    }
+  } catch (err) {
+    errorEl.textContent = 'No se pudo conectar: ' + err.message;
+  }
+}
+
+function cerrarSesionOps() {
+  state.opsToken = null;
+  sessionStorage.removeItem('planillas_ops_token');
+  mostrarPantalla('dashboard-screen');
+  showToast('Sesión cerrada');
+}
+
+async function cargarVistaGeneral() {
+  mostrarPantalla('general-screen');
+  const tabla = document.getElementById('tabla-general');
+  tabla.innerHTML = `<tr><th>Local</th>${DASH_CARDS.map(c => `<th>${c.icon} ${c.nombre}</th>`).join('')}</tr>` +
+    `<tr><td colspan="${DASH_CARDS.length + 1}" class="vacio">Cargando…</td></tr>`;
+
+  if (!API_URL) {
+    tabla.innerHTML = `<tr><th>Local</th>${DASH_CARDS.map(c => `<th>${c.icon} ${c.nombre}</th>`).join('')}</tr>` +
+      `<tr><td colspan="${DASH_CARDS.length + 1}" class="vacio">Backend no configurado</td></tr>`;
+    return;
+  }
+
+  try {
+    const r = await fetch(`${API_URL}?action=dashboardGeneral&token=${encodeURIComponent(state.opsToken)}`);
+    const res = await r.json();
+    if (res.requiereLogin) {
+      state.opsToken = null;
+      sessionStorage.removeItem('planillas_ops_token');
+      showToast('La sesión expiró, iniciá sesión de nuevo');
+      abrirLoginOps();
+      return;
+    }
+    renderTablaGeneral(res.generales || {});
+  } catch (err) {
+    tabla.innerHTML = `<tr><th>Local</th>${DASH_CARDS.map(c => `<th>${c.icon} ${c.nombre}</th>`).join('')}</tr>` +
+      `<tr><td colspan="${DASH_CARDS.length + 1}" class="vacio">No se pudo cargar: ${err.message}</td></tr>`;
+  }
+}
+
+function claseParaEstado(info) {
+  if (!info || info.sinDatos) return 'sin-datos';
+  if (info.porcentaje >= 90 && info.incumplimientos === 0) return 'bien';
+  if (info.porcentaje >= 70) return 'regular';
+  return 'mal';
+}
+
+function renderTablaGeneral(generales) {
+  const tabla = document.getElementById('tabla-general');
+  let html = `<tr><th>Local</th>${DASH_CARDS.map(c => `<th>${c.icon} ${c.nombre}</th>`).join('')}</tr>`;
+  LOCALES.forEach(local => {
+    const datos = generales[local] || {};
+    const permitidas = cardsParaLocal(local).map(c => c.id);
+    html += `<tr><td class="nombre-local">${local}</td>`;
+    DASH_CARDS.forEach(c => {
+      if (!permitidas.includes(c.id)) {
+        html += `<td><span class="celda-estado sin-datos">N/A</span></td>`;
+        return;
+      }
+      const info = datos[c.id];
+      const clase = claseParaEstado(info);
+      const texto = !info || info.sinDatos ? '—' : `${info.porcentaje}%`;
+      html += `<td><span class="celda-estado ${clase}" onclick="irADesdeGeneral('${local}','${c.id}')">${texto}</span></td>`;
+    });
+    html += `</tr>`;
+  });
+  tabla.innerHTML = html;
+}
+
+function irADesdeGeneral(local, planillaId) {
+  document.getElementById('local-select').value = local;
+  state.local = local;
+  localStorage.setItem('planillas_local', local);
+  abrirDesdeCard(planillaId);
+}
+
+/* ---------------- SEMANAL (apertura / cierre) ---------------- */
+function pad_(n) { return String(n).padStart(2, '0'); }
+
+function lunesDeSemana(offsetSemanas) {
+  const hoy = new Date();
+  const dia = hoy.getDay(); // 0=domingo
+  const diffAlLunes = dia === 0 ? -6 : 1 - dia;
+  const lunes = new Date(hoy);
+  lunes.setDate(hoy.getDate() + diffAlLunes + offsetSemanas * 7);
+  lunes.setHours(0,0,0,0);
+  return lunes;
+}
+
+function fechaISO_(d) { return `${d.getFullYear()}-${pad_(d.getMonth()+1)}-${pad_(d.getDate())}`; }
+
+function diaDeHoyIndice() {
+  // 0=lunes .. 6=domingo, según semana actual (offset 0)
+  const hoy = new Date(); const dia = hoy.getDay();
+  return dia === 0 ? 6 : dia - 1;
+}
+
+async function abrirSemanal(id) {
+  state.semanalId = id;
+  state.semanaOffset = 0;
+  const planilla = PLANILLAS_SEMANAL[id];
+  document.getElementById('semanal-titulo').textContent = planilla.icon + ' ' + planilla.nombre;
+  await cargarEstadoSemanalYRenderizar();
+  mostrarPantalla('semanal-screen');
+}
+
+function cambiarSemana(delta) {
+  state.semanaOffset += delta;
+  cargarEstadoSemanalYRenderizar();
+}
+
+function periodoSemanal() { return fechaISO_(lunesDeSemana(state.semanaOffset)); }
+
+async function cargarEstadoSemanalYRenderizar() {
+  state.estadoSemanal = {};
+  const lunes = lunesDeSemana(state.semanaOffset);
+  const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+  document.getElementById('semanal-rango').textContent = `${lunes.getDate()}/${lunes.getMonth()+1} — ${domingo.getDate()}/${domingo.getMonth()+1}`;
+
+  if (API_URL) {
+    try {
+      const r = await fetch(`${API_URL}?action=estadoSemanal&planillaId=${state.semanalId}&local=${encodeURIComponent(state.local)}&periodo=${periodoSemanal()}`);
+      const res = await r.json();
+      if (res.estado) state.estadoSemanal = res.estado;
+    } catch (err) { /* seguimos con estado vacío */ }
+  }
+  renderSemanal();
+}
+
+function renderSemanal() {
+  const planilla = PLANILLAS_SEMANAL[state.semanalId];
+  const cont = document.getElementById('semanal-grupos');
+  const esSemanaActual = state.semanaOffset === 0;
+  const esSemanaFutura = state.semanaOffset > 0;
+  const diaHoyIdx = diaDeHoyIndice();
+
+  let html = '';
+  planilla.grupos.forEach((grupo, gIdx) => {
+    html += `<div class="grupo-titulo">${grupo.titulo}</div>`;
+    html += `<div class="dias-header"><span class="spacer"></span>${DIAS.map(d => `<span class="dia-letra">${d.letra}</span>`).join('')}</div>`;
+    grupo.tareas.forEach((texto, tIdx) => {
+      const clave = `g${gIdx}_t${tIdx}`;
+      const estadoTarea = state.estadoSemanal[clave] || {};
+      const botones = DIAS.map((d, dIdx) => {
+        const hecho = !!estadoTarea[d.key];
+        const esFuturo = esSemanaFutura || (esSemanaActual && dIdx > diaHoyIdx);
+        const esHoy = esSemanaActual && dIdx === diaHoyIdx;
+        const vencido = !esFuturo && !hecho && esSemanaActual && dIdx < diaHoyIdx;
+        const vencidoSemanaPasada = state.semanaOffset < 0 && !hecho;
+        let clases = 'dia-btn';
+        if (hecho) clases += ' hecho';
+        else if (esFuturo) clases += ' futuro';
+        else if (vencido || vencidoSemanaPasada) clases += ' vencido';
+        if (esHoy) clases += ' hoy';
+        const disabled = esFuturo ? 'disabled' : '';
+        return `<button class="${clases}" ${disabled} onclick="toggleDia(${gIdx},${tIdx},'${d.key}')">${hecho ? '✓' : ''}</button>`;
+      }).join('');
+      html += `
+        <div class="tarea-row">
+          <span class="tarea-num">${tIdx + 1}</span>
+          <span class="tarea-texto">${texto}</span>
+          <div class="dias-toggle">${botones}</div>
+        </div>`;
+    });
+  });
+  cont.innerHTML = html;
+  actualizarProgresoSemanal();
+}
+
+function toggleDia(gIdx, tIdx, diaKey) {
+  const clave = `g${gIdx}_t${tIdx}`;
+  if (!state.estadoSemanal[clave]) state.estadoSemanal[clave] = {};
+  state.estadoSemanal[clave][diaKey] = !state.estadoSemanal[clave][diaKey];
+  renderSemanal();
+  guardarSemanalAlBackend();
+}
+
+function calcularProgresoSemanal() {
+  const planilla = PLANILLAS_SEMANAL[state.semanalId];
+  const esSemanaActual = state.semanaOffset === 0;
+  const esSemanaFutura = state.semanaOffset > 0;
+  const diaHoyIdx = diaDeHoyIndice();
+  const diasContables = esSemanaFutura ? 0 : (esSemanaActual ? diaHoyIdx + 1 : 7);
+
+  let totalPosible = 0, totalHecho = 0, incumplimientos = 0;
+  planilla.grupos.forEach((grupo, gIdx) => {
+    grupo.tareas.forEach((texto, tIdx) => {
+      const clave = `g${gIdx}_t${tIdx}`;
+      const estadoTarea = state.estadoSemanal[clave] || {};
+      for (let dIdx = 0; dIdx < diasContables; dIdx++) {
+        totalPosible++;
+        if (estadoTarea[DIAS[dIdx].key]) totalHecho++;
+        else incumplimientos++;
+      }
+    });
+  });
+  const porcentaje = totalPosible > 0 ? Math.round((totalHecho / totalPosible) * 100) : 0;
+  return { porcentaje, incumplimientos, totalPosible, totalHecho };
+}
+
+function actualizarProgresoSemanal() {
+  const { porcentaje, incumplimientos } = calcularProgresoSemanal();
+  document.getElementById('semanal-pct').textContent = porcentaje + '%';
+  document.getElementById('semanal-bar').style.width = porcentaje + '%';
+  document.getElementById('semanal-incump').textContent = incumplimientos > 0 ? `${incumplimientos} pendiente(s)` : '';
+}
+
+function tareasDenormalizadas() {
+  const planilla = PLANILLAS_SEMANAL[state.semanalId];
+  const lista = [];
+  planilla.grupos.forEach((grupo, gIdx) => {
+    grupo.tareas.forEach((texto, tIdx) => {
+      const clave = `g${gIdx}_t${tIdx}`;
+      const dias = state.estadoSemanal[clave] || {};
+      lista.push({ grupo: grupo.titulo, numero: tIdx + 1, texto, dias });
+    });
+  });
+  return lista;
+}
+
+async function guardarSemanalAlBackend() {
+  actualizarProgresoSemanal();
+  if (!API_URL) return;
+  const { porcentaje, incumplimientos } = calcularProgresoSemanal();
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'guardarEstado',
+        planillaId: state.semanalId,
+        local: state.local,
+        periodo: periodoSemanal(),
+        estado: state.estadoSemanal,
+        tareas: tareasDenormalizadas(),
+        diasColumnas: DIAS.map(d => d.key),
+        diasEtiquetas: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        porcentaje, incumplimientos,
+        guardadoPor: '',
+      }),
+    });
+  } catch (err) { /* falla silenciosa; el usuario puede seguir marcando */ }
+}
+
+/* ---------------- TEMPERATURA ---------------- */
+function cargarEquiposLocal_() {
+  const cfg = localStorage.getItem('planillas_equipos_' + state.local);
+  state.equiposLocal = cfg ? JSON.parse(cfg) : [];
+}
+
+function abrirTemperatura() {
+  cargarEquiposLocal_();
+  if (state.equiposLocal.length === 0) { abrirModalEquipos(); return; }
+  state.equipoSelIdx = 0;
+  renderSelectorEquipos();
+  document.getElementById('temp-hora').value = new Date().toTimeString().slice(0,5);
+  document.getElementById('temp-preview').className = 'resultado-preview';
+  cargarHistorialTemperatura();
+  mostrarPantalla('temperatura-screen');
+}
+
+function renderSelectorEquipos() {
+  const sel = document.getElementById('temp-equipo-sel');
+  sel.innerHTML = state.equiposLocal.map((eq, i) => `<option value="${i}">${eq.nombre} (${eq.tipo === 'freezer' ? 'Freezer' : 'Heladera'})</option>`).join('');
+  sel.value = state.equipoSelIdx;
+  evaluarPreviewTemperatura();
+}
+
+function onCambioEquipoSel() {
+  state.equipoSelIdx = parseInt(document.getElementById('temp-equipo-sel').value, 10) || 0;
+  evaluarPreviewTemperatura();
+}
+
+/* -------- Configuración de equipos (modal, lista variable por local) -------- */
+function abrirModalEquipos() {
+  cargarEquiposLocal_();
+  state.equiposCfgTmp = state.equiposLocal.length > 0
+    ? JSON.parse(JSON.stringify(state.equiposLocal))
+    : [{ nombre: '', tipo: 'heladera' }];
+  renderListaEquiposCfg();
+  document.getElementById('modal-equipos').classList.add('show');
+}
+
+function renderListaEquiposCfg() {
+  const cont = document.getElementById('lista-equipos-cfg');
+  if (state.equiposCfgTmp.length === 0) {
+    cont.innerHTML = '<div class="equipo-vacio">Sin equipos cargados todavía</div>';
+    return;
+  }
+  cont.innerHTML = state.equiposCfgTmp.map((eq, i) => `
+    <div class="equipo-row">
+      <input type="text" placeholder="Ej: Cámara fría" value="${(eq.nombre || '').replace(/"/g, '&quot;')}" oninput="actualizarEquipoNombre(${i}, this.value)">
+      <div class="segmentado mini">
+        <button class="${eq.tipo === 'heladera' ? 'activo' : ''}" onclick="actualizarEquipoTipo(${i},'heladera')">Heladera</button>
+        <button class="${eq.tipo === 'freezer' ? 'activo' : ''}" onclick="actualizarEquipoTipo(${i},'freezer')">Freezer</button>
+      </div>
+      <button class="borrar-equipo" onclick="eliminarEquipoConfig(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function agregarEquipoConfig() {
+  state.equiposCfgTmp.push({ nombre: '', tipo: 'heladera' });
+  renderListaEquiposCfg();
+}
+function actualizarEquipoNombre(i, val) { state.equiposCfgTmp[i].nombre = val; }
+function actualizarEquipoTipo(i, tipo) { state.equiposCfgTmp[i].tipo = tipo; renderListaEquiposCfg(); }
+function eliminarEquipoConfig(i) { state.equiposCfgTmp.splice(i, 1); renderListaEquiposCfg(); }
+
+function guardarConfigEquipos() {
+  const lista = state.equiposCfgTmp.filter(eq => eq.nombre && eq.nombre.trim());
+  if (lista.length === 0) { showToast('Cargá al menos un equipo con nombre'); return; }
+  localStorage.setItem('planillas_equipos_' + state.local, JSON.stringify(lista));
+  state.equiposLocal = lista;
+  document.getElementById('modal-equipos').classList.remove('show');
+  abrirTemperatura();
+}
+
+function setTurno(t, btn) {
+  state.tempTurno = t;
+  btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+}
+
+document.addEventListener('input', (e) => {
+  if (e.target && e.target.id === 'temp-valor') evaluarPreviewTemperatura();
+  if (e.target && e.target.id === 'rec-temp') evaluarPreviewRecepcion();
+});
+
+function rangoParaTipoEquipo(tipo) {
+  return tipo === 'freezer' ? { min: -100, max: -18, texto: '-18°C o menos' } : { min: 0, max: 5, texto: '0°C a 5°C' };
+}
+
+function equipoSeleccionado_() {
+  return state.equiposLocal[state.equipoSelIdx] || { nombre: '—', tipo: 'heladera' };
+}
+
+function evaluarPreviewTemperatura() {
+  const val = parseFloat(document.getElementById('temp-valor').value);
+  const preview = document.getElementById('temp-preview');
+  if (isNaN(val)) { preview.className = 'resultado-preview'; return; }
+  const eq = equipoSeleccionado_();
+  const rango = rangoParaTipoEquipo(eq.tipo);
+  const cumple = val >= rango.min && val <= rango.max;
+  preview.className = 'resultado-preview ' + (cumple ? 'ok' : 'mal');
+  preview.textContent = cumple
+    ? `✓ Dentro de rango (${eq.nombre}, ${rango.texto})`
+    : `✗ Fuera de rango — ${eq.nombre} debe estar en ${rango.texto}`;
+}
+
+async function agregarLecturaTemperatura() {
+  if (requiereLocal()) return;
+  const hora = document.getElementById('temp-hora').value;
+  const valor = parseFloat(document.getElementById('temp-valor').value);
+  if (!hora || isNaN(valor)) { showToast('Completá hora y temperatura'); return; }
+  const eq = equipoSeleccionado_();
+  const rango = rangoParaTipoEquipo(eq.tipo);
+  const cumple = valor >= rango.min && valor <= rango.max;
+  const fecha = fechaISO_(new Date());
+
+  const payload = {
+    action: 'guardarEntrada',
+    planillaId: 'temperatura',
+    local: state.local,
+    fecha,
+    datos: { turno: state.tempTurno, equipo: eq.nombre, tipoEquipo: eq.tipo, hora, valor },
+    cumple,
+    detalle: `${eq.nombre} (${eq.tipo}) — ${valor}°C — turno ${state.tempTurno}`,
+    responsable: '',
+  };
+
+  if (!API_URL) { showToast('Falta configurar el backend'); return; }
+  try {
+    await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    showToast(cumple ? 'Lectura guardada ✓' : 'Lectura guardada — fuera de rango, se notificó');
+    document.getElementById('temp-valor').value = '';
+    document.getElementById('temp-preview').className = 'resultado-preview';
+    cargarHistorialTemperatura();
+  } catch (err) {
+    showToast('No se pudo guardar: ' + err.message);
+  }
+}
+
+async function cargarHistorialTemperatura() {
+  const cont = document.getElementById('temp-historial');
+  if (!API_URL) { cont.innerHTML = '<div class="vacio">Backend no configurado</div>'; return; }
+  const mesActual = fechaISO_(new Date()).slice(0,7);
+  try {
+    const r = await fetch(`${API_URL}?action=historialEntradas&planillaId=temperatura&local=${encodeURIComponent(state.local)}&periodo=${mesActual}`);
+    const res = await r.json();
+    const entradas = (res.entradas || []).sort((a,b) => b.fecha.localeCompare(a.fecha));
+    if (entradas.length === 0) { cont.innerHTML = '<div class="vacio">Sin registros este mes todavía</div>'; return; }
+    cont.innerHTML = entradas.map(e => `
+      <div class="entrada-row ${e.cumple ? 'ok' : 'mal'}">
+        <div class="entrada-info">
+          <div class="principal">${e.datos.valor}°C — ${e.datos.equipo}</div>
+          <div class="secundario">${e.fecha} · ${e.datos.hora} · turno ${e.datos.turno}</div>
+        </div>
+        <div class="entrada-badge ${e.cumple ? 'ok' : 'mal'}">${e.cumple ? 'OK' : 'FUERA DE RANGO'}</div>
+      </div>
+    `).join('');
+  } catch (err) {
+    cont.innerHTML = '<div class="vacio">No se pudo cargar el historial</div>';
+  }
+}
+
+/* ---------------- RECEPCION DE MATERIA PRIMA ---------------- */
+function abrirRecepcion() {
+  state.recTipo = 'refrigerado';
+  document.querySelectorAll('#rec-tipo-sel button').forEach(b => b.classList.remove('activo'));
+  document.querySelector('#rec-tipo-sel button').classList.add('activo');
+  document.getElementById('rec-temp-campo').style.display = '';
+  document.getElementById('rec-preview').className = 'resultado-preview';
+  cargarHistorialRecepcion();
+  mostrarPantalla('recepcion-screen');
+}
+
+function rangoParaTipoRecepcion_(tipo) {
+  if (tipo === 'congelado') return { min: -100, max: 0, texto: '0°C o menos' };
+  if (tipo === 'ambiente') return null; // llega a temperatura ambiente, no se controla
+  return { min: 0, max: 5, texto: '0°C a 5°C' };
+}
+
+function setTipoRecepcion(t, btn) {
+  state.recTipo = t;
+  btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('activo'));
+  btn.classList.add('activo');
+  document.getElementById('rec-temp-campo').style.display = t === 'ambiente' ? 'none' : '';
+  evaluarPreviewRecepcion();
+}
+
+function evaluarPreviewRecepcion() {
+  const preview = document.getElementById('rec-preview');
+  const rango = rangoParaTipoRecepcion_(state.recTipo);
+  if (!rango) { preview.className = 'resultado-preview'; return; }
+  const val = parseFloat(document.getElementById('rec-temp').value);
+  if (isNaN(val)) { preview.className = 'resultado-preview'; return; }
+  const cumple = val >= rango.min && val <= rango.max;
+  preview.className = 'resultado-preview ' + (cumple ? 'ok' : 'mal');
+  preview.textContent = cumple ? `✓ Conforme (${rango.texto})` : `✗ No conforme — debe estar en ${rango.texto}`;
+}
+
+async function agregarRecepcion() {
+  if (requiereLocal()) return;
+  const producto = document.getElementById('rec-producto').value.trim();
+  const proveedor = document.getElementById('rec-proveedor').value.trim();
+  const cantidad = document.getElementById('rec-cantidad').value.trim();
+  const lote = document.getElementById('rec-lote').value.trim();
+  const vencimiento = document.getElementById('rec-vencimiento').value;
+  const responsable = document.getElementById('rec-responsable').value.trim();
+  const rango = rangoParaTipoRecepcion_(state.recTipo);
+
+  if (!producto) { showToast('Completá al menos el producto'); return; }
+
+  let temp = '', cumple = true;
+  if (rango) {
+    temp = parseFloat(document.getElementById('rec-temp').value);
+    if (isNaN(temp)) { showToast('Completá la temperatura'); return; }
+    cumple = temp >= rango.min && temp <= rango.max;
+  }
+  const fecha = fechaISO_(new Date());
+
+  const payload = {
+    action: 'guardarEntrada',
+    planillaId: 'recepcion',
+    local: state.local,
+    fecha,
+    datos: { producto, proveedor, cantidad, lote, vencimiento, tipo: state.recTipo, temp },
+    cumple,
+    detalle: `${producto} (${proveedor || '—'}) — ${rango ? temp + '°C' : 'ambiente'} — ${cumple ? 'Conforme' : 'No conforme'}`,
+    responsable,
+  };
+
+  if (!API_URL) { showToast('Falta configurar el backend'); return; }
+  try {
+    await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    showToast(cumple ? 'Recepción guardada ✓' : 'Recepción guardada — NC, se notificó');
+    ['rec-producto','rec-proveedor','rec-cantidad','rec-lote','rec-vencimiento','rec-temp','rec-responsable'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('rec-preview').className = 'resultado-preview';
+    cargarHistorialRecepcion();
+  } catch (err) {
+    showToast('No se pudo guardar: ' + err.message);
+  }
+}
+
+async function cargarHistorialRecepcion() {
+  const cont = document.getElementById('rec-historial');
+  if (!API_URL) { cont.innerHTML = '<div class="vacio">Backend no configurado</div>'; return; }
+  const mesActual = fechaISO_(new Date()).slice(0,7);
+  try {
+    const r = await fetch(`${API_URL}?action=historialEntradas&planillaId=recepcion&local=${encodeURIComponent(state.local)}&periodo=${mesActual}`);
+    const res = await r.json();
+    const entradas = (res.entradas || []).sort((a,b) => b.fecha.localeCompare(a.fecha));
+    if (entradas.length === 0) { cont.innerHTML = '<div class="vacio">Sin registros este mes todavía</div>'; return; }
+    cont.innerHTML = entradas.map(e => {
+      const tempTexto = e.datos.tipo === 'ambiente' ? 'Ambiente' : `${e.datos.temp}°C`;
+      return `
+      <div class="entrada-row ${e.cumple ? 'ok' : 'mal'}">
+        <div class="entrada-info">
+          <div class="principal">${e.datos.producto} — ${tempTexto}</div>
+          <div class="secundario">${e.fecha} · ${e.datos.proveedor || '—'} · ${e.datos.cantidad || ''}</div>
+        </div>
+        <div class="entrada-badge ${e.cumple ? 'ok' : 'mal'}">${e.cumple ? 'C' : 'NC'}</div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    cont.innerHTML = '<div class="vacio">No se pudo cargar el historial</div>';
+  }
+}
+
+/* ---------------- MENSUAL (riego / limpieza baños / limpieza general) ---------------- */
+function diasEnMes_(anio, mesIdx) { return new Date(anio, mesIdx + 1, 0).getDate(); }
+
+function mesConOffset_(offset) {
+  const hoy = new Date();
+  return new Date(hoy.getFullYear(), hoy.getMonth() + offset, 1);
+}
+
+function periodoMensual() {
+  const d = mesConOffset_(state.mesOffset);
+  return `${d.getFullYear()}-${pad_(d.getMonth() + 1)}`;
+}
+
+async function abrirMensual(id) {
+  state.mensualId = id;
+  state.mesOffset = 0;
+  const planilla = PLANILLAS_MENSUAL[id];
+  document.getElementById('mensual-titulo').textContent = planilla.icon + ' ' + planilla.nombre;
+  document.getElementById('mensual-nota').textContent = planilla.nota || '';
+  await cargarEstadoMensualYRenderizar();
+  mostrarPantalla('mensual-screen');
+}
+
+function cambiarMes(delta) {
+  state.mesOffset += delta;
+  cargarEstadoMensualYRenderizar();
+}
+
+async function cargarEstadoMensualYRenderizar() {
+  state.estadoMensual = {};
+  const d = mesConOffset_(state.mesOffset);
+  const nombresMes = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  document.getElementById('mensual-rango').textContent = `${nombresMes[d.getMonth()]} ${d.getFullYear()}`;
+
+  if (API_URL) {
+    try {
+      const r = await fetch(`${API_URL}?action=estadoSemanal&planillaId=${state.mensualId}&local=${encodeURIComponent(state.local)}&periodo=${periodoMensual()}`);
+      const res = await r.json();
+      if (res.estado) state.estadoMensual = res.estado;
+    } catch (err) { /* seguimos con estado vacío */ }
+  }
+  renderMensual();
+}
+
+function renderMensual() {
+  const planilla = PLANILLAS_MENSUAL[state.mensualId];
+  const cont = document.getElementById('mensual-grupos');
+  const d = mesConOffset_(state.mesOffset);
+  const totalDias = diasEnMes_(d.getFullYear(), d.getMonth());
+  const esMesActual = state.mesOffset === 0;
+  const esMesFuturo = state.mesOffset > 0;
+  const diaHoy = new Date().getDate();
+
+  let html = '';
+  planilla.grupos.forEach((grupo, gIdx) => {
+    html += `<div class="grupo-titulo">${grupo.titulo}</div>`;
+    html += `<div class="mes-scroll">`;
+    html += `<div class="dias-header-mes"><span class="spacer-mes"></span>${Array.from({length: totalDias}, (_, i) => `<span class="dia-num">${i + 1}</span>`).join('')}</div>`;
+    grupo.tareas.forEach((texto, tIdx) => {
+      const clave = `g${gIdx}_t${tIdx}`;
+      const estadoTarea = state.estadoMensual[clave] || {};
+      const botones = Array.from({length: totalDias}, (_, i) => {
+        const diaNum = i + 1;
+        const key = 'd' + diaNum;
+        const hecho = !!estadoTarea[key];
+        const esFuturo = esMesFuturo || (esMesActual && diaNum > diaHoy);
+        const esHoy = esMesActual && diaNum === diaHoy;
+        const vencido = !esFuturo && !hecho && ((esMesActual && diaNum < diaHoy) || state.mesOffset < 0);
+        let clases = 'dia-btn-mes';
+        if (hecho) clases += ' hecho';
+        else if (esFuturo) clases += ' futuro';
+        else if (vencido) clases += ' vencido';
+        if (esHoy) clases += ' hoy';
+        const disabled = esFuturo ? 'disabled' : '';
+        return `<button class="${clases}" ${disabled} onclick="toggleDiaMensual(${gIdx},${tIdx},${diaNum})">${hecho ? '✓' : ''}</button>`;
+      }).join('');
+      html += `<div class="tarea-row-mes"><span class="tarea-texto-mes">${texto}</span><div class="dias-toggle-mes">${botones}</div></div>`;
+    });
+    html += `</div>`;
+  });
+  cont.innerHTML = html;
+  actualizarProgresoMensual();
+}
+
+function toggleDiaMensual(gIdx, tIdx, diaNum) {
+  const clave = `g${gIdx}_t${tIdx}`;
+  if (!state.estadoMensual[clave]) state.estadoMensual[clave] = {};
+  const key = 'd' + diaNum;
+  state.estadoMensual[clave][key] = !state.estadoMensual[clave][key];
+  renderMensual();
+  guardarMensualAlBackend();
+}
+
+function calcularProgresoMensual() {
+  const planilla = PLANILLAS_MENSUAL[state.mensualId];
+  const d = mesConOffset_(state.mesOffset);
+  const totalDias = diasEnMes_(d.getFullYear(), d.getMonth());
+  const esMesActual = state.mesOffset === 0;
+  const esMesFuturo = state.mesOffset > 0;
+  const diaHoy = new Date().getDate();
+  const diasContables = esMesFuturo ? 0 : (esMesActual ? diaHoy : totalDias);
+
+  let totalPosible = 0, totalHecho = 0, incumplimientos = 0;
+  planilla.grupos.forEach((grupo, gIdx) => {
+    grupo.tareas.forEach((texto, tIdx) => {
+      const clave = `g${gIdx}_t${tIdx}`;
+      const estadoTarea = state.estadoMensual[clave] || {};
+      for (let dia = 1; dia <= diasContables; dia++) {
+        totalPosible++;
+        if (estadoTarea['d' + dia]) totalHecho++;
+        else incumplimientos++;
+      }
+    });
+  });
+  const porcentaje = totalPosible > 0 ? Math.round((totalHecho / totalPosible) * 100) : 0;
+  return { porcentaje, incumplimientos };
+}
+
+function actualizarProgresoMensual() {
+  const { porcentaje, incumplimientos } = calcularProgresoMensual();
+  document.getElementById('mensual-pct').textContent = porcentaje + '%';
+  document.getElementById('mensual-bar').style.width = porcentaje + '%';
+  document.getElementById('mensual-incump').textContent = incumplimientos > 0 ? `${incumplimientos} pendiente(s)` : '';
+}
+
+function tareasMensualDenormalizadas() {
+  const planilla = PLANILLAS_MENSUAL[state.mensualId];
+  const lista = [];
+  planilla.grupos.forEach((grupo, gIdx) => {
+    grupo.tareas.forEach((texto, tIdx) => {
+      const clave = `g${gIdx}_t${tIdx}`;
+      const dias = state.estadoMensual[clave] || {};
+      lista.push({ grupo: grupo.titulo, numero: tIdx + 1, texto, dias });
+    });
+  });
+  return lista;
+}
+
+async function guardarMensualAlBackend() {
+  actualizarProgresoMensual();
+  if (!API_URL) return;
+  const { porcentaje, incumplimientos } = calcularProgresoMensual();
+  const d = mesConOffset_(state.mesOffset);
+  const totalDias = diasEnMes_(d.getFullYear(), d.getMonth());
+  const diasColumnas = Array.from({length: totalDias}, (_, i) => 'd' + (i + 1));
+  const diasEtiquetas = Array.from({length: totalDias}, (_, i) => String(i + 1));
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'guardarEstado',
+        planillaId: state.mensualId,
+        local: state.local,
+        periodo: periodoMensual(),
+        estado: state.estadoMensual,
+        tareas: tareasMensualDenormalizadas(),
+        diasColumnas, diasEtiquetas,
+        porcentaje, incumplimientos,
+        guardadoPor: '',
+      }),
+    });
+  } catch (err) { /* falla silenciosa; el usuario puede seguir marcando */ }
+}
+
+/* ---------------- REGISTRO GENÉRICO ---------------- */
+function abrirRegistroGenerico(id) {
+  state.registroId = id;
+  const planilla = PLANILLAS_REGISTRO[id];
+  document.getElementById('registro-titulo').textContent = planilla.icon + ' ' + planilla.nombre;
+  const cont = document.getElementById('registro-campos');
+  cont.innerHTML = planilla.campos.map(c => {
+    const esControl = planilla.control && planilla.control.key === c.key;
+    const inputTipo = c.tipo === 'number' ? 'number' : c.tipo;
+    const step = c.tipo === 'number' ? 'step="0.1"' : '';
+    const oninput = esControl ? `oninput="evaluarPreviewRegistroGenerico()"` : '';
+    return `<div class="campo${c.full ? ' full' : ''}">
+      <label>${c.label}</label>
+      <input type="${inputTipo}" ${step} id="reg-${c.key}" placeholder="${c.placeholder || ''}" ${oninput}>
+    </div>`;
+  }).join('');
+  const preview = document.getElementById('registro-preview');
+  preview.className = 'resultado-preview';
+  preview.style.display = planilla.control ? '' : 'none';
+  cargarHistorialRegistroGenerico();
+  mostrarPantalla('registro-screen');
+}
+
+function evaluarPreviewRegistroGenerico() {
+  const planilla = PLANILLAS_REGISTRO[state.registroId];
+  const preview = document.getElementById('registro-preview');
+  if (!planilla.control) return;
+  const val = parseFloat(document.getElementById('reg-' + planilla.control.key).value);
+  if (isNaN(val)) { preview.className = 'resultado-preview'; return; }
+  const cumple = val >= planilla.control.min && val <= planilla.control.max;
+  preview.className = 'resultado-preview ' + (cumple ? 'ok' : 'mal');
+  preview.textContent = cumple
+    ? `✓ Dentro de rango (${planilla.control.texto})`
+    : `✗ Fuera de rango — debe ser ${planilla.control.texto}`;
+}
+
+async function agregarRegistroGenerico() {
+  if (requiereLocal()) return;
+  const planilla = PLANILLAS_REGISTRO[state.registroId];
+  const datos = {};
+  planilla.campos.forEach(c => {
+    const v = document.getElementById('reg-' + c.key).value;
+    datos[c.key] = c.tipo === 'number' ? (v === '' ? '' : parseFloat(v)) : (v || '').trim ? v.trim() : v;
+  });
+
+  const primerCampo = planilla.campos[0];
+  if (!datos[primerCampo.key]) { showToast('Completá ' + primerCampo.label.toLowerCase()); return; }
+
+  let cumple = true;
+  if (planilla.control) {
+    const val = datos[planilla.control.key];
+    if (val === '' || isNaN(val)) {
+      showToast('Completá ' + planilla.campos.find(c => c.key === planilla.control.key).label);
+      return;
+    }
+    cumple = val >= planilla.control.min && val <= planilla.control.max;
+  }
+
+  const fecha = fechaISO_(new Date());
+  const detalle = planilla.campos.slice(0, 3).map(c => datos[c.key]).filter(Boolean).join(' — ') || planilla.nombre;
+
+  const payload = {
+    action: 'guardarEntrada',
+    planillaId: state.registroId,
+    local: state.local,
+    fecha,
+    datos,
+    cumple,
+    tieneControl: !!planilla.control,
+    camposOrden: planilla.campos.map(c => c.key),
+    camposEtiquetas: planilla.campos.map(c => c.label),
+    detalle,
+    responsable: datos.responsable || '',
+  };
+
+  if (!API_URL) { showToast('Falta configurar el backend'); return; }
+  try {
+    await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    showToast(planilla.control ? (cumple ? 'Guardado ✓' : 'Guardado — fuera de rango, se notificó') : 'Guardado ✓');
+    planilla.campos.forEach(c => { document.getElementById('reg-' + c.key).value = ''; });
+    document.getElementById('registro-preview').className = 'resultado-preview';
+    cargarHistorialRegistroGenerico();
+  } catch (err) {
+    showToast('No se pudo guardar: ' + err.message);
+  }
+}
+
+async function cargarHistorialRegistroGenerico() {
+  const cont = document.getElementById('registro-historial');
+  const planilla = PLANILLAS_REGISTRO[state.registroId];
+  if (!API_URL) { cont.innerHTML = '<div class="vacio">Backend no configurado</div>'; return; }
+  const mesActual = fechaISO_(new Date()).slice(0, 7);
+  try {
+    const r = await fetch(`${API_URL}?action=historialEntradas&planillaId=${state.registroId}&local=${encodeURIComponent(state.local)}&periodo=${mesActual}`);
+    const res = await r.json();
+    const entradas = (res.entradas || []).sort((a, b) => b.fecha.localeCompare(a.fecha));
+    if (entradas.length === 0) { cont.innerHTML = '<div class="vacio">Sin registros este mes todavía</div>'; return; }
+    cont.innerHTML = entradas.map(e => {
+      const principal = planilla.campos.slice(0, 2).map(c => e.datos[c.key]).filter(v => v !== undefined && v !== '').join(' — ');
+      const secundario = [e.fecha].concat(planilla.campos.slice(2, 4).map(c => e.datos[c.key]).filter(v => v !== undefined && v !== '')).join(' · ');
+      const badge = planilla.control ? `<div class="entrada-badge ${e.cumple ? 'ok' : 'mal'}">${e.cumple ? 'OK' : 'FUERA DE RANGO'}</div>` : '';
+      return `
+      <div class="entrada-row ${planilla.control ? (e.cumple ? 'ok' : 'mal') : ''}">
+        <div class="entrada-info">
+          <div class="principal">${principal}</div>
+          <div class="secundario">${secundario}</div>
+        </div>
+        ${badge}
+      </div>`;
+    }).join('');
+  } catch (err) {
+    cont.innerHTML = '<div class="vacio">No se pudo cargar el historial</div>';
+  }
+}
+
+/* ---------------- PRODUCCIÓN DIARIA ---------------- */
+const PRODUCCION_CARNES = ['Bola de Lomo', 'Lomo Premium', 'Pollo Deshuesado'];
+const PRODUCCION_VERDURAS = ['Cebolla', 'Ajo'];
+
+function abrirProduccion() {
+  document.getElementById('prod-fecha').value = fechaISO_(new Date());
+  renderTablaProdRecibidoMerma_('tabla-corte', PRODUCCION_CARNES, 'Recibido', 'corte');
+  renderTablaProdRecibidoMerma_('tabla-verduras', PRODUCCION_VERDURAS, 'Recibido', 'verd');
+  renderTablaProdRecibidoMerma_('tabla-marinada', ['Marinada'], 'Elaboración', 'marinada');
+  renderTablaFinal_();
+  cargarHistorialProduccion();
+  mostrarPantalla('produccion-screen');
+}
+
+function renderTablaProdRecibidoMerma_(tablaId, productos, labelCol1, prefijo) {
+  const tabla = document.getElementById(tablaId);
+  let html = `<tr><th>Producto</th><th>${labelCol1}</th><th>Merma</th><th>Total</th></tr>`;
+  productos.forEach((p, i) => {
+    const key = prefijo + i;
+    html += `<tr>
+      <td>${p}</td>
+      <td><input type="number" step="0.1" id="${key}-recibido" oninput="recalcTotalProd('${key}')"></td>
+      <td><input type="number" step="0.1" id="${key}-merma" oninput="recalcTotalProd('${key}')"></td>
+      <td class="total-cell" id="${key}-total">0.0</td>
+    </tr>`;
+  });
+  tabla.innerHTML = html;
+}
+
+function renderTablaFinal_() {
+  const tabla = document.getElementById('tabla-final');
+  let html = `<tr><th>Producto</th><th>Final Kilos</th><th>Final Unidades</th></tr>`;
+  PRODUCCION_CARNES.forEach((p, i) => {
+    html += `<tr>
+      <td>${p}</td>
+      <td><input type="number" step="0.1" id="final${i}-kilos"></td>
+      <td><input type="number" step="1" id="final${i}-un"></td>
+    </tr>`;
+  });
+  tabla.innerHTML = html;
+}
+
+function recalcTotalProd(key) {
+  const recibido = parseFloat(document.getElementById(key + '-recibido').value) || 0;
+  const merma = parseFloat(document.getElementById(key + '-merma').value) || 0;
+  document.getElementById(key + '-total').textContent = Math.max(recibido - merma, 0).toFixed(1);
+}
+
+function leerTablaProd_(productos, prefijo) {
+  return productos.map((p, i) => {
+    const key = prefijo + i;
+    return {
+      producto: p,
+      recibido: parseFloat(document.getElementById(key + '-recibido').value) || 0,
+      merma: parseFloat(document.getElementById(key + '-merma').value) || 0,
+      total: parseFloat(document.getElementById(key + '-total').textContent) || 0,
+    };
+  });
+}
+
+async function guardarProduccion() {
+  if (requiereLocal()) return;
+  const fecha = document.getElementById('prod-fecha').value || fechaISO_(new Date());
+  const corte = leerTablaProd_(PRODUCCION_CARNES, 'corte');
+  const verduras = leerTablaProd_(PRODUCCION_VERDURAS, 'verd');
+  const marinada = leerTablaProd_(['Marinada'], 'marinada');
+  const final = PRODUCCION_CARNES.map((p, i) => ({
+    producto: p,
+    finalKilos: parseFloat(document.getElementById(`final${i}-kilos`).value) || 0,
+    finalUnidades: parseFloat(document.getElementById(`final${i}-un`).value) || 0,
+  }));
+  const colaboradores = document.getElementById('prod-colaboradores').value.trim();
+  const horas = document.getElementById('prod-horas').value.trim();
+
+  const payload = {
+    action: 'guardarEntrada',
+    planillaId: 'produccion',
+    local: state.local,
+    fecha,
+    datos: { corte, verduras, marinada, final, colaboradores, horas },
+    cumple: true,
+    tieneControl: false,
+    camposOrden: ['colaboradores', 'horas'],
+    camposEtiquetas: ['Colaboradores', 'Horas de trabajo'],
+    detalle: `Producción diaria — ${colaboradores || '—'} colaborador(es), ${horas || '—'} hs`,
+    responsable: '',
+  };
+
+  if (!API_URL) { showToast('Falta configurar el backend'); return; }
+  try {
+    await fetch(API_URL, { method: 'POST', body: JSON.stringify(payload) });
+    showToast('Producción guardada ✓');
+    cargarHistorialProduccion();
+  } catch (err) {
+    showToast('No se pudo guardar: ' + err.message);
+  }
+}
+
+async function cargarHistorialProduccion() {
+  const cont = document.getElementById('prod-historial');
+  if (!API_URL) { cont.innerHTML = '<div class="vacio">Backend no configurado</div>'; return; }
+  const mesActual = fechaISO_(new Date()).slice(0, 7);
+  try {
+    const r = await fetch(`${API_URL}?action=historialEntradas&planillaId=produccion&local=${encodeURIComponent(state.local)}&periodo=${mesActual}`);
+    const res = await r.json();
+    const entradas = (res.entradas || []).sort((a, b) => b.fecha.localeCompare(a.fecha));
+    if (entradas.length === 0) { cont.innerHTML = '<div class="vacio">Sin registros este mes todavía</div>'; return; }
+    cont.innerHTML = entradas.map(e => {
+      const totalFinalKilos = (e.datos.final || []).reduce((s, f) => s + (f.finalKilos || 0), 0);
+      return `
+      <div class="entrada-row">
+        <div class="entrada-info">
+          <div class="principal">${totalFinalKilos.toFixed(1)} kg finales — ${e.datos.colaboradores || '—'} colab.</div>
+          <div class="secundario">${e.fecha} · ${e.datos.horas || '—'} hs de trabajo</div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    cont.innerHTML = '<div class="vacio">No se pudo cargar el historial</div>';
+  }
+}
+
+/* ---------------- ENVÍOS SEMANALES (Centro de Producción) ---------------- */
+const PLANILLA_ENVIOS = {
+  productos: [
+    { nombre: 'Carne Vacuna Marinada en Cubitos', unidad: 'kg' },
+    { nombre: 'Pechuga Desh. Marinada en Cubitos', unidad: 'kg' },
+    { nombre: 'Pechuga de Pollo Feteada', unidad: 'uni' },
+    { nombre: 'Lomo Vacuno Feteado', unidad: 'uni' },
+  ],
+};
+
+function periodoSemanalEnvios() { return fechaISO_(lunesDeSemana(state.enviosOffset)); }
+
+async function abrirEnvios() {
+  state.enviosOffset = 0;
+  await cargarEstadoEnviosYRenderizar();
+  mostrarPantalla('envios-screen');
+}
+
+function cambiarSemanaEnvios(delta) {
+  state.enviosOffset += delta;
+  cargarEstadoEnviosYRenderizar();
+}
+
+async function cargarEstadoEnviosYRenderizar() {
+  state.estadoEnvios = {};
+  const lunes = lunesDeSemana(state.enviosOffset);
+  const domingo = new Date(lunes); domingo.setDate(lunes.getDate() + 6);
+  document.getElementById('envios-rango').textContent = `${lunes.getDate()}/${lunes.getMonth() + 1} — ${domingo.getDate()}/${domingo.getMonth() + 1}`;
+
+  if (API_URL) {
+    try {
+      const r = await fetch(`${API_URL}?action=estadoSemanal&planillaId=salida&local=${encodeURIComponent(state.local)}&periodo=${periodoSemanalEnvios()}`);
+      const res = await r.json();
+      if (res.estado) state.estadoEnvios = res.estado;
+    } catch (err) { /* seguimos con estado vacío */ }
+  }
+  renderEnvios();
+}
+
+const RANGO_TEMP_SALIDA = { min: -100, max: 0, texto: '0°C o menos' };
+
+function calcularTotalEnvio_(e1, e2, e3) {
+  const n1 = parseFloat(e1) || 0, n2 = parseFloat(e2) || 0, n3 = parseFloat(e3) || 0;
+  return (n1 + n2 + n3).toFixed(1);
+}
+
+function tempEnvioFueraDeRango_(temp) {
+  if (temp === '' || temp === null || temp === undefined) return false;
+  const n = parseFloat(temp);
+  if (isNaN(n)) return false;
+  return !(n >= RANGO_TEMP_SALIDA.min && n <= RANGO_TEMP_SALIDA.max);
+}
+
+function celdaEnvio_(i, n, cant, temp) {
+  const fueraRango = tempEnvioFueraDeRango_(temp);
+  return `<td>
+    <div class="envio-celda">
+      <input type="number" step="0.1" placeholder="Cant." id="env${i}-e${n}" value="${cant != null ? cant : ''}" oninput="recalcTotalEnvio(${i})">
+      <input type="number" step="0.1" placeholder="°C salida" class="envio-temp${fueraRango ? ' mal' : ''}" id="env${i}-t${n}" value="${temp != null ? temp : ''}" oninput="evaluarTempEnvio(${i},${n})">
+    </div>
+  </td>`;
+}
+
+function renderEnvios() {
+  const tabla = document.getElementById('tabla-envios');
+  let html = `<tr><th>Producto</th><th>Envío 1</th><th>Envío 2</th><th>Envío 3</th><th>Total</th><th>Observaciones</th></tr>`;
+  PLANILLA_ENVIOS.productos.forEach((p, i) => {
+    const g = state.estadoEnvios[i] || {};
+    const total = calcularTotalEnvio_(g.envio1, g.envio2, g.envio3);
+    html += `<tr>
+      <td>${p.nombre} [${p.unidad}]</td>
+      ${celdaEnvio_(i, 1, g.envio1, g.temp1)}
+      ${celdaEnvio_(i, 2, g.envio2, g.temp2)}
+      ${celdaEnvio_(i, 3, g.envio3, g.temp3)}
+      <td class="total-cell" id="env${i}-total">${total}</td>
+      <td><input type="text" class="input-obs" id="env${i}-obs" value="${(g.observaciones || '').replace(/"/g, '&quot;')}"></td>
+    </tr>`;
+  });
+  tabla.innerHTML = html;
+  document.getElementById('envios-responsable').value = state.estadoEnvios.__responsable || '';
+}
+
+function recalcTotalEnvio(i) {
+  const e1 = document.getElementById(`env${i}-e1`).value;
+  const e2 = document.getElementById(`env${i}-e2`).value;
+  const e3 = document.getElementById(`env${i}-e3`).value;
+  document.getElementById(`env${i}-total`).textContent = calcularTotalEnvio_(e1, e2, e3);
+}
+
+function evaluarTempEnvio(i, n) {
+  const input = document.getElementById(`env${i}-t${n}`);
+  input.classList.toggle('mal', tempEnvioFueraDeRango_(input.value));
+}
+
+function leerEnviosForm_() {
+  const estado = {};
+  PLANILLA_ENVIOS.productos.forEach((p, i) => {
+    estado[i] = {
+      envio1: document.getElementById(`env${i}-e1`).value,
+      temp1: document.getElementById(`env${i}-t1`).value,
+      envio2: document.getElementById(`env${i}-e2`).value,
+      temp2: document.getElementById(`env${i}-t2`).value,
+      envio3: document.getElementById(`env${i}-e3`).value,
+      temp3: document.getElementById(`env${i}-t3`).value,
+      observaciones: document.getElementById(`env${i}-obs`).value.trim(),
+    };
+  });
+  estado.__responsable = document.getElementById('envios-responsable').value.trim();
+  return estado;
+}
+
+function enviosDenormalizados_(estado) {
+  return PLANILLA_ENVIOS.productos.map((p, i) => {
+    const e = estado[i] || {};
+    const temps = [e.temp1, e.temp2, e.temp3].filter(t => t !== '' && t !== null && t !== undefined);
+    const conforme = temps.length === 0 ? null : temps.every(t => !tempEnvioFueraDeRango_(t));
+    return {
+      producto: `${p.nombre} [${p.unidad}]`,
+      envio1: e.envio1 || '', temp1: e.temp1 || '',
+      envio2: e.envio2 || '', temp2: e.temp2 || '',
+      envio3: e.envio3 || '', temp3: e.temp3 || '',
+      total: calcularTotalEnvio_(e.envio1, e.envio2, e.envio3),
+      observaciones: e.observaciones || '',
+      conforme,
+      chequeosTemp: temps.length,
+    };
+  });
+}
+
+async function guardarEnvios() {
+  if (requiereLocal()) return;
+  const estado = leerEnviosForm_();
+  state.estadoEnvios = estado;
+  const envios = enviosDenormalizados_(estado);
+
+  const totalChequeos = envios.reduce((s, e) => s + e.chequeosTemp, 0);
+  let cumplen = 0;
+  envios.forEach(e => {
+    [e.temp1, e.temp2, e.temp3].forEach(t => {
+      if (t !== '' && t !== null && t !== undefined && !tempEnvioFueraDeRango_(t)) cumplen++;
+    });
+  });
+  const porcentaje = totalChequeos > 0 ? Math.round((cumplen / totalChequeos) * 100) : 0;
+  const incumplimientos = totalChequeos - cumplen;
+
+  if (!API_URL) { showToast('Falta configurar el backend'); return; }
+  try {
+    await fetch(API_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'guardarEstado',
+        planillaId: 'salida',
+        local: state.local,
+        periodo: periodoSemanalEnvios(),
+        estado,
+        envios,
+        porcentaje, incumplimientos,
+        responsable: estado.__responsable,
+        guardadoPor: estado.__responsable,
+      }),
+    });
+    showToast(incumplimientos > 0 ? `Envíos guardados — ${incumplimientos} temp. fuera de rango` : 'Envíos guardados ✓');
+  } catch (err) {
+    showToast('No se pudo guardar: ' + err.message);
+  }
+}
+
+init();
+</script>
+</body>
+</html>
